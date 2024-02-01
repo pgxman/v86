@@ -1,8 +1,8 @@
-FROM i386/debian:buster
+FROM i386/postgres:16
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt update && \
+RUN apt clean && apt update && \
     apt --yes --no-install-recommends install \
         linux-image-686 grub2 systemd \
         libterm-readline-perl-perl \
@@ -12,15 +12,16 @@ RUN apt update && \
         xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-input-evdev \
         xserver-xorg-video-fbdev xserver-xorg-video-vesa \
         xserver-xorg x11-xserver-utils xinit dbus-x11 \
-        libgdk-pixbuf2.0 libpango-1.0 libpangocairo-1.0 libgtk2.0-bin \
+        libgdk-pixbuf2.0-0 libpango-1.0-0 libpangocairo-1.0-0 libgtk2.0-bin \
         libc-l10n locales \
         fonts-noto fonts-droid-fallback \
         strace file xterm vim apt-file \
         dhcpcd5 \
         wget curl \
-        net-tools netcat \
+        net-tools netcat-openbsd \
         wmctrl xdotool \
         mesa-utils libgl1-mesa-dri \
+        dnsutils iputils-ping ca-certificates \
     && \
     touch /root/.Xdefaults && \
     echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && \
@@ -32,9 +33,9 @@ RUN apt update && \
     systemctl enable serial-getty@ttyS0.service && \
     rm /lib/systemd/system/getty.target.wants/getty-static.service && \
     rm /etc/motd /etc/issue && \
-    systemctl disable systemd-timesyncd.service && \
+    #systemctl disable systemd-timesyncd.service && \
     systemctl disable apt-daily.timer && \
-    systemctl disable apt-daily-upgrade.timer && \
+    #systemctl disable apt-daily-upgrade.timer && \
     systemctl disable dhcpcd.service && \
     echo "tmpfs /tmp tmpfs nodev,nosuid 0 0" >> /etc/fstab && \
     cd /root/ && \
@@ -61,9 +62,13 @@ RUN printf '%s\n' 9p 9pnet 9pnet_virtio virtio virtio_ring virtio_pci | tee -a /
     echo 'BOOT=boot-9p' | tee -a /etc/initramfs-tools/initramfs.conf && \
     update-initramfs -u
 
-RUN apt-get --yes clean && \
-    rm -r /var/lib/apt/lists/* && \
-    rm -r /usr/share/doc/* && \
-    rm -r /usr/share/man/* && \
-    rm -r /usr/share/locale/?? && \
-    rm /var/log/*.log /var/log/lastlog /var/log/wtmp /var/log/apt/*.log /var/log/apt/*.xz
+RUN curl -sfL https://github.com/pgxman/pgxman/releases/download/v1.2.1/pgxman_linux_386.deb -o /tmp/pgxman_linux_386.deb && \
+    apt install /tmp/pgxman_linux_386.deb -y
+RUN pgxman install pgvector --yes --debug
+
+#RUN apt-get --yes clean && \
+#    rm -r /var/lib/apt/lists/* && \
+#   rm -r /usr/share/doc/* && \
+#   rm -r /usr/share/man/* && \
+#   rm -r /usr/share/locale/?? && \
+#   rm /var/log/*.log /var/log/lastlog /var/log/wtmp /var/log/apt/*.log /var/log/apt/*.xz

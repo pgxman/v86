@@ -26,9 +26,11 @@ var emulator = new V86({
     autostart: true,
     memory_size: 512 * 1024 * 1024,
     vga_memory_size: 8 * 1024 * 1024,
-    network_relay_url: "<UNUSED>",
     bzimage_initrd_from_filesystem: true,
     cmdline: "rw init=/bin/systemd root=host9p console=ttyS0 spectre_v2=off pti=off",
+    network_relay_url: "wss://relay.widgetry.org/",
+    preserve_mac_from_state_image: true,
+    mac_address_translation: true,
     filesystem: {
         basefs: {
             url: path.join(V86_ROOT, "/images/debian-base-fs.json"),
