@@ -23,3 +23,11 @@ var oses = [
 Save it and go to `debug.html?profile=debian` to start the generated container.
 
 You can modify the `Dockerfile` to customize the generated Linux image.
+
+## Notes (owenthereal)
+
+### Getting networking to work
+
+1. After the image is booted, run `ifconfig -a` to find the intreface (e.g. `enp0s5`)
+1. Run a `dhcpcd -w4 enp0s5` to automatically populate `/etc/resolv.conf`
+1. Useful debugging commands: `dig @8.8.8.8 google.com` & `ping google.com`
