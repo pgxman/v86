@@ -1,11 +1,14 @@
 <!doctype html>
 <head>
     <title>Debian</title>
+
     <link rel="stylesheet" href="https://unpkg.com/xterm@4.19.0/css/xterm.css" />
+    <link rel="stylesheet" href="./styles.css" />
+
     <script src="https://unpkg.com/xterm-addon-fit@0.5.0/lib/xterm-addon-fit.js"></script>
     <script src="https://unpkg.com/xterm@4.19.0/lib/xterm.js"></script>
-
     <script src="../build/libv86.js"></script>
+
     <script>
         "use strict";
 
@@ -21,11 +24,13 @@
                 preserve_mac_from_state_image: true,
                 mac_address_translation: true,
                 initial_state: { url: "../images/debian-state-base.bin" },
+                //initial_state: { url: "../images/debian-state-base.bin.zst" },
                 filesystem: { baseurl: "../images/debian-9p-rootfs-flat/" },
                 autostart: true,
                 disable_keyboard: true,
                 disable_mouse: true,
                 disable_speaker: true,
+                //acpi: true
             });
 
             function initTerm() {
@@ -40,7 +45,10 @@
                 setTimeout(() => {
                     //sendBackgroundCommands(["/etc/init.d/S40network restart"]);
                     emulator.serial0_send(
-                        `\\! stty rows ${emulator.serial_adapter.term.rows} cols ${emulator.serial_adapter.term.cols} && reset\n`
+                        `\n\\! stty rows ${emulator.serial_adapter.term.rows} cols ${emulator.serial_adapter.term.cols} && reset\n`
+                    );
+                    emulator.serial0_send(
+                        `\\! clear\n`
                     );
                     emulator.serial_adapter.term.focus();
                 }, 0);
@@ -52,8 +60,8 @@
 <!-- A minimal structure for the ScreenAdapter defined in browser/screen.js -->
 <body>
     <div id="screen_container" style="display: none">
-        <div style="white-space: pre; font: 14px monospace; line-height: 14px"></div>
-        <canvas style="display: none"></canvas>
+        <div></div>
+        <canvas></canvas>
     </div>
     <div class="container">
         <div class="xterminal">
