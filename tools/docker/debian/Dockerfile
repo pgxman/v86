@@ -21,7 +21,7 @@ RUN apt clean && apt update && \
         net-tools netcat-openbsd \
         wmctrl xdotool \
         mesa-utils libgl1-mesa-dri \
-        dnsutils iputils-ping ca-certificates \
+        dnsutils iputils-ping ca-certificates procps \
     && \
     touch /root/.Xdefaults && \
     echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && \
@@ -62,9 +62,14 @@ RUN printf '%s\n' 9p 9pnet 9pnet_virtio virtio virtio_ring virtio_pci | tee -a /
     echo 'BOOT=boot-9p' | tee -a /etc/initramfs-tools/initramfs.conf && \
     update-initramfs -u
 
+COPY pgxman-postgres.service /etc/systemd/system/pgxman-postgres.service
+COPY pgxman-postgres.env /etc/default/pgxman-postgres
+RUN systemctl enable pgxman-postgres
+
 RUN curl -sfL https://github.com/pgxman/pgxman/releases/download/v1.2.1/pgxman_linux_386.deb -o /tmp/pgxman_linux_386.deb && \
     apt install /tmp/pgxman_linux_386.deb -y
-RUN pgxman install pgvector --yes --debug
+
+RUN POSTGRES_USER=postgres POSTGRES_PASSWORD=postgres docker-ensure-initdb.sh
 
 #RUN apt-get --yes clean && \
 #    rm -r /var/lib/apt/lists/* && \

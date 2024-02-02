@@ -1,29 +1,63 @@
 <!doctype html>
-<title>Debian</title>
+<head>
+    <title>Debian</title>
+    <link rel="stylesheet" href="https://unpkg.com/xterm@4.19.0/css/xterm.css" />
+    <script src="https://unpkg.com/xterm-addon-fit@0.5.0/lib/xterm-addon-fit.js"></script>
+    <script src="https://unpkg.com/xterm@4.19.0/lib/xterm.js"></script>
 
-<script src="../build/libv86.js"></script>
-<script>
-"use strict";
+    <script src="../build/libv86.js"></script>
+    <script>
+        "use strict";
 
-window.onload = function()
-{
-    var emulator = new V86({
-        wasm_path: "../build/v86.wasm",
-        memory_size: 512 * 1024 * 1024,
-        vga_memory_size: 8 * 1024 * 1024,
-        screen_container: document.getElementById("screen_container"),
-        network_relay_url: "wss://relay.widgetry.org/",
-        preserve_mac_from_state_image: true,
-        mac_address_translation: true,
-        initial_state: { url: "../images/debian-state-base.bin" },
-        filesystem: { baseurl: "../images/debian-9p-rootfs-flat/" },
-        autostart: true,
-    });
-};
-</script>
+        window.onload = function()
+        {
+            var emulator = new V86({
+                wasm_path: "../build/v86.wasm",
+                memory_size: 512 * 1024 * 1024,
+                vga_memory_size: 8 * 1024 * 1024,
+                screen_container: document.getElementById("screen_container"),
+                serial_container_xtermjs: document.getElementById("terminal"),
+                network_relay_url: "wss://relay.widgetry.org/",
+                preserve_mac_from_state_image: true,
+                mac_address_translation: true,
+                initial_state: { url: "../images/debian-state-base.bin" },
+                filesystem: { baseurl: "../images/debian-9p-rootfs-flat/" },
+                autostart: true,
+                disable_keyboard: true,
+                disable_mouse: true,
+                disable_speaker: true,
+            });
+
+            function initTerm() {
+                const fitAddon = new FitAddon.FitAddon();
+                emulator.serial_adapter.term.loadAddon(fitAddon);
+                fitAddon.fit();
+                window.addEventListener("resize", () => fitAddon.fit());
+            }
+
+            emulator.add_listener("emulator-ready", function () {
+                initTerm();
+                setTimeout(() => {
+                    //sendBackgroundCommands(["/etc/init.d/S40network restart"]);
+                    emulator.serial0_send(
+                        `\\! stty rows ${emulator.serial_adapter.term.rows} cols ${emulator.serial_adapter.term.cols} && reset\n`
+                    );
+                    emulator.serial_adapter.term.focus();
+                }, 0);
+            });
+        }
+    </script>
+</head>
 
 <!-- A minimal structure for the ScreenAdapter defined in browser/screen.js -->
-<div id="screen_container">
-    <div style="white-space: pre; font: 14px monospace; line-height: 14px"></div>
-    <canvas style="display: none"></canvas>
-</div>
+<body>
+    <div id="screen_container" style="display: none">
+        <div style="white-space: pre; font: 14px monospace; line-height: 14px"></div>
+        <canvas style="display: none"></canvas>
+    </div>
+    <div class="container">
+        <div class="xterminal">
+            <div id="terminal"></div>
+        </div>
+    </div>
+</body>

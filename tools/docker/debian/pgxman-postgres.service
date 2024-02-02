@@ -1,0 +1,16 @@
+[Unit]
+Description=pgxman PostgreSQL
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+TimeoutStartSec=0
+User=postgres
+EnvironmentFile=/etc/default/pgxman-postgres
+ExecStart=docker-entrypoint.sh postgres
+PIDFile=/run/postgresql/16.pid
+OOMScoreAdjust=-900
+
+[Install]
+WantedBy=multi-user.target

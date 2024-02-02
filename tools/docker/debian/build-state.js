@@ -45,6 +45,18 @@ console.log("Now booting, please stand by ...");
 var boot_start = Date.now();
 var serial_text = "";
 let booted = false;
+let pg_started = false;
+let drop_caches = false
+
+// initial -> booted -> pg_started -> cache_dropped -> done
+
+function is_prompt(text) {
+    return text.endsWith("root@localhost:~# ")
+}
+
+function is_pg_isready(text) {
+    return text.indexOf("accepting connections") != -1
+}
 
 emulator.add_listener("serial0-output-byte", function(byte)
 {
@@ -53,14 +65,22 @@ emulator.add_listener("serial0-output-byte", function(byte)
 
     serial_text += c;
 
-    if(!booted && serial_text.endsWith("root@localhost:~# "))
-    {
-        console.error("\nBooted in %d", (Date.now() - boot_start) / 1000);
-        booted = true;
+    if (is_prompt(serial_text)) {
+        booted = true
+    }
 
+    if (is_pg_isready(serial_text)) {
+        pg_started = true
+    } 
+
+    if (booted && !pg_started && is_prompt(serial_text)) {
+        emulator.serial0_send("pg_isready -t 5\n");
+    }
+
+    if (pg_started && !drop_caches) {
         // sync and drop caches: Makes it safer to change the filesystem as fewer files are rendered
-        emulator.serial0_send("sync;echo 3 >/proc/sys/vm/drop_caches\n");
-
+        //emulator.serial0_send("sync;echo 3 >/proc/sys/vm/drop_caches; \n");
+        emulator.serial0_send("echo 3 > /proc/sys/vm/drop_caches && echo 3 > /proc/sys/kernel/printk && reset && psql -U postgres\n")
         setTimeout(async function ()
             {
                 const s = await emulator.save_state();
@@ -72,7 +92,9 @@ emulator.add_listener("serial0-output-byte", function(byte)
                         stop();
                     });
             }, 10 * 1000);
+        drop_caches = true
     }
+
 });
 
 function handle_key(c)
