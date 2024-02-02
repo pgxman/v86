@@ -1,5 +1,5 @@
 [Unit]
-Description=pgxman PostgreSQL
+Description=Run PostgreSQL
 After=network.target
 
 [Service]

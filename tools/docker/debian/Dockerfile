@@ -64,7 +64,8 @@ RUN printf '%s\n' 9p 9pnet 9pnet_virtio virtio virtio_ring virtio_pci | tee -a /
 
 COPY pgxman-postgres.service /etc/systemd/system/pgxman-postgres.service
 COPY pgxman-postgres.env /etc/default/pgxman-postgres
-RUN systemctl enable pgxman-postgres
+COPY refresh-network.service /etc/systemd/system/refresh-network.service
+RUN systemctl enable pgxman-postgres && systemctl enable refresh-network
 
 RUN curl -sfL https://github.com/pgxman/pgxman/releases/download/v1.2.1/pgxman_linux_386.deb -o /tmp/pgxman_linux_386.deb && \
     apt install /tmp/pgxman_linux_386.deb -y

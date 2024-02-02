@@ -1,0 +1,11 @@
+[Unit]
+Description=Refresh Network
+After=network.target
+
+[Service]
+ExecStart=dhcpcd -w4 enp0s5
+RemainAfterExit=true
+Type=oneshot
+
+[Install]
+WantedBy=multi-user.target
